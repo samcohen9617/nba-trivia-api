@@ -1,0 +1,7 @@
+flask
+flask_cors
+bs4
+requests
+pandas
+scikit-learn
+numpy
