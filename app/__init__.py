@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
+from app.firebase.connect import init_db
 
 def app_register_blueprints(app):
     """
@@ -7,11 +8,12 @@ def app_register_blueprints(app):
     :param app: Flask App
     :return: None
     """
-    from app.api import trivia
+    from app.api import trivia, scrape
 
     # Register routes
     _blue_prints = [
         (trivia.blueprint.BP, True),
+        (scrape.blueprint.BP, True),
     ]
     for _bp, include, in _blue_prints:
         if include:
@@ -24,6 +26,8 @@ def create_app():
     """
     app = Flask(__name__)
     CORS(app)
+    with app.app_context():
+        init_db()
 
     app_register_blueprints(app)
 

@@ -21,17 +21,17 @@ def get_player_table(soup):
     return rows
 
 
-def get_random_player():
-    """Get random player route"""
-    random_letter = random.choice(string.ascii_lowercase)
-    url = f'https://www.basketball-reference.com/players/{random_letter}/'
-    soup = make_soup(url)
-    rows = get_player_table(soup)
-    # get random player
-    random_player = random.choice(rows)
-    # get player name
-    player_name = random_player.find('th', {'data-stat': 'player'}).text
-    return player_name
+# def get_random_player():
+#     """Get random player route"""
+#     random_letter = random.choice(string.ascii_lowercase)
+#     url = f'https://www.basketball-reference.com/players/{random_letter}/'
+#     soup = make_soup(url)
+#     rows = get_player_table(soup)
+#     # get random player
+#     random_player = random.choice(rows)
+#     # get player name
+#     player_name = random_player.find('th', {'data-stat': 'player'}).text
+#     return player_name
 
 
 
@@ -42,18 +42,18 @@ def filter_players_by_retirement_year(player_row, year):
     player_retirement_year = player_row.find('td', {'data-stat': 'year_max'}).text
     return int(player_retirement_year) >= year
 
-def get_random_active_player():
-    """Get random active player route"""
-    random_letter = random.choice(string.ascii_lowercase)
-    url = f'https://www.basketball-reference.com/players/{random_letter}/'
-    # try:
-    soup = make_soup(url)
-    rows = get_player_table(soup)
-    # get random player
-    filtered_rows = list(filter(lambda row: filter_players_by_retirement_year(row, CURRENT_YEAR), rows))
-    random_player = random.choice(filtered_rows)
-    player_name = random_player.find('th', {'data-stat': 'player'}).text
-    return player_name
+# def get_random_active_player():
+#     """Get random active player route"""
+#     random_letter = random.choice(string.ascii_lowercase)
+#     url = f'https://www.basketball-reference.com/players/{random_letter}/'
+#     # try:
+#     soup = make_soup(url)
+#     rows = get_player_table(soup)
+#     # get random player
+#     filtered_rows = list(filter(lambda row: filter_players_by_retirement_year(row, CURRENT_YEAR), rows))
+#     random_player = random.choice(filtered_rows)
+#     player_name = random_player.find('th', {'data-stat': 'player'}).text
+#     return player_name
 
 def get_season_stats_as_df(season):
     """Get season stats route"""

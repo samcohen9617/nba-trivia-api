@@ -4,76 +4,53 @@ from scipy.stats import pearsonr
 from sklearn.preprocessing import StandardScaler
 import heapq
 
+EXCLUDED_COLUMNS = ['Player', 'Age', 'Rk', 'Tm', 'G', 'GS', 'Pos']
+
 
 def get_player_index(df, player):
     return list(np.where(df["Player"] == player)[0])[0]
 
 
-def get_most_similar_row_cosine(df, row):
-    max_similarity = []
-    # most_similar = None
-
+def standardize(df):
     scaler = StandardScaler()
-    df.iloc[:, 7:] = scaler.fit_transform(df.iloc[:, 7:])
+    df.iloc[:, ~df.columns.isin(EXCLUDED_COLUMNS)] = scaler.fit_transform(df.iloc[:, ~df.columns.isin(EXCLUDED_COLUMNS)])
+    return df
 
-    for i in range(len(df)):
-        if i == row:
-            continue
-        row1 = df.iloc[row][7:].values.astype(float)
-        row2 = df.iloc[i][7:].values.astype(float)
 
-        # Calculate cosine similarity
+def get_row_as_float(df, row):
+    return df.iloc[row][~df.columns.isin(EXCLUDED_COLUMNS)].values.astype(float)
+
+
+def calculate_row_similarity(row1, row2, similarity_function):
+    if similarity_function == "cosine":
         similarity = cosine_similarity([row1, row2])
-
-        # Update the maximum similarity
-        if len(max_similarity) < 5:
-            max_similarity.append((similarity[0][1], df.iloc[i]["Player"]))
-        else:
-            heapq.heappushpop(max_similarity, (similarity[0][1], df.iloc[i]["Player"]))
-
-
-    return max_similarity
-
-
-def get_most_similar_row_euclidean(df, row):
-    min_distance = float('inf')
-    most_similar = None
-    scaler = StandardScaler()
-    df.iloc[:, 7:] = scaler.fit_transform(df.iloc[:, 7:])
-    for i in range(len(df)):
-        if i == row:
-            continue
-        row1 = df.iloc[row][7:].values.astype(float)
-        row2 = df.iloc[i][7:].values.astype(float)
-        distance = np.linalg.norm(row1 - row2)
-        if distance < min_distance:
-            min_distance = distance
-            most_similar = f'{df.iloc[row]["Player"]} and {df.iloc[i]["Player"]} are {distance} similar'
-        print(f'{df.iloc[row]["Player"]} and {df.iloc[i]["Player"]} are {distance} similar')
-
-    return most_similar
-
-
-def get_most_similar_row_pearsonian(df, row):
-    max_similarity = 0
-    most_similar = None
-    scaler = StandardScaler()
-    df.iloc[:, 7:] = scaler.fit_transform(df.iloc[:, 7:])
-
-    for i in range(len(df)):
-        if i == row:
-            continue
-        row1 = df.iloc[row][7:].values.astype(float)
-        row2 = df.iloc[i][7:].values.astype(float)
-
-        # Calculate pearson correlation
+        return similarity[0][1]
+    elif similarity_function == "pearson":
         corr, _ = pearsonr(row1, row2)
+        return corr
+    elif similarity_function == "euclidean":
+        return -np.linalg.norm(row1 - row2)
 
+
+def get_most_similar_row(df, row, similarity_function="pearson"):
+    max_similarity = []
+    # Standardize the data
+    df = standardize(df)
+
+    for i in range(len(df)):
+        if i == row:
+            continue
+        # Get the row as float
+        row1 = get_row_as_float(df, row)
+        row2 = get_row_as_float(df, i)
+
+        # Calculate similarity
+        similarity = calculate_row_similarity(row1, row2, similarity_function)
 
         # Update the maximum similarity
-        if corr > max_similarity:
-            max_similarity = corr
-            most_similar = f'{df.iloc[row]["Player"]} and {df.iloc[i]["Player"]} are {corr} similar'
-    return most_similar
+        if len(max_similarity) < 10:
+            max_similarity.append((similarity, df.iloc[i]["Player"]))
+        else:
+            heapq.heappushpop(max_similarity, (similarity, df.iloc[i]["Player"]))
 
-
+    return [heapq.heappop(max_similarity) for i in range(len(max_similarity))]
