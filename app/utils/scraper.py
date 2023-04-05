@@ -57,9 +57,9 @@ def get_random_active_player():
 
 def get_season_stats_as_df(season):
     """Get season stats route"""
-    url = f'https://www.basketball-reference.com/leagues/NBA_{season}_per_poss.html'
+    url = f'https://www.basketball-reference.com/leagues/NBA_{season}_per_game.html'
     soup = make_soup(url)
-    table = soup.find('table', id="per_poss_stats")
+    table = soup.find('table', id="per_game_stats")
     df = pd.read_html(str(table))[0]
     # remove header rows in middle of table
     df = df[df['Age'] != 'Age']

@@ -2,6 +2,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from scipy.stats import pearsonr
 from sklearn.preprocessing import StandardScaler
+import heapq
 
 
 def get_player_index(df, player):
@@ -9,8 +10,8 @@ def get_player_index(df, player):
 
 
 def get_most_similar_row_cosine(df, row):
-    max_similarity = 0
-    most_similar = None
+    max_similarity = []
+    # most_similar = None
 
     scaler = StandardScaler()
     df.iloc[:, 7:] = scaler.fit_transform(df.iloc[:, 7:])
@@ -25,10 +26,13 @@ def get_most_similar_row_cosine(df, row):
         similarity = cosine_similarity([row1, row2])
 
         # Update the maximum similarity
-        if similarity[0][1] > max_similarity:
-            max_similarity = similarity[0][1]
-            most_similar = f'{df.iloc[row]["Player"]} and {df.iloc[i]["Player"]} are {similarity[0][1]} similar'
-    return most_similar
+        if len(max_similarity) < 5:
+            max_similarity.append((similarity[0][1], df.iloc[i]["Player"]))
+        else:
+            heapq.heappushpop(max_similarity, (similarity[0][1], df.iloc[i]["Player"]))
+
+
+    return max_similarity
 
 
 def get_most_similar_row_euclidean(df, row):
