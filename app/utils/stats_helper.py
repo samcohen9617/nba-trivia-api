@@ -7,8 +7,19 @@ import heapq
 EXCLUDED_COLUMNS = ['Player', 'Age', 'Rk', 'Tm', 'G', 'GS', 'Pos']
 
 
-def get_player_index(df, player):
-    return list(np.where(df["Player"] == player)[0])[0]
+def get_player_index(df, player_name):
+    # Get all rows where the player name is the same
+    player_rows = df.loc[df["Player"] == player_name]
+    if len(player_rows) == 0:
+        return None, df
+
+
+    #drop the rows where the player name is the same
+    df = df.loc[df["Player"] != player_name]
+    if len(player_rows) > 1:
+        return player_rows.loc[player_rows["Tm"] == 'TOT'], df
+
+    return player_rows, df
 
 
 def standardize(df):
@@ -18,7 +29,7 @@ def standardize(df):
 
 
 def get_row_as_float(df, row):
-    return df.iloc[row][~df.columns.isin(EXCLUDED_COLUMNS)].values.astype(float)
+    return row.iloc[0][~row.columns.isin(EXCLUDED_COLUMNS)].values.astype(float)
 
 
 def calculate_row_similarity(row1, row2, similarity_function):
@@ -35,22 +46,24 @@ def calculate_row_similarity(row1, row2, similarity_function):
 def get_most_similar_row(df, row, similarity_function="pearson"):
     max_similarity = []
     # Standardize the data
+    df.loc[len(df.index)] = row.iloc[0]
     df = standardize(df)
+    row = df.tail(1)
+    df.drop(df.tail(1).index, inplace=True)  # drop last n rows
 
     for i in range(len(df)):
-        if i == row:
-            continue
         # Get the row as float
         row1 = get_row_as_float(df, row)
-        row2 = get_row_as_float(df, i)
+        row2 = get_row_as_float(df, df.iloc[[i]])
 
         # Calculate similarity
         similarity = calculate_row_similarity(row1, row2, similarity_function)
 
+        compared_player_name = df.iloc[i]["Player"]
         # Update the maximum similarity
-        if len(max_similarity) < 10:
-            max_similarity.append((similarity, df.iloc[i]["Player"]))
+        if len(max_similarity) < 3:
+            max_similarity.append((similarity, compared_player_name))
         else:
-            heapq.heappushpop(max_similarity, (similarity, df.iloc[i]["Player"]))
-
-    return [heapq.heappop(max_similarity) for i in range(len(max_similarity))]
+            heapq.heappushpop(max_similarity, (similarity, compared_player_name))
+            # print([heapq.heappop(max_similarity) for x in range(len(max_similarity))])
+    return [heapq.heappop(max_similarity) for x in range(len(max_similarity))]
