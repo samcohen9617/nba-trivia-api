@@ -3,9 +3,10 @@ import numpy as np
 from scipy.stats import pearsonr
 from sklearn.preprocessing import StandardScaler
 import heapq
+import pandas as pd
 
-EXCLUDED_COLUMNS = ['Player', 'Age', 'Rk', 'Tm', 'G', 'GS', 'Pos']
-
+# EXCLUDED_COLUMNS = ['Player', 'Age', 'Rk', 'Tm', 'G', 'GS', 'Pos']
+EXCLUDED_COLUMNS = ['2P', '2P%', '2PA', '3P', '3P%', '3PA', 'Age', 'BLK', 'DRB', 'FG', 'FG%', 'FGA', 'FT', 'FT%', 'FTA', 'G', 'GS', 'MP', 'ORB', 'PF', 'Player', 'Pos', 'STL', 'TOV', 'TRB', 'Tm', 'eFG%']
 
 def get_player_index(df, player_name):
     # Get all rows where the player name is the same
@@ -66,4 +67,10 @@ def get_most_similar_row(df, row, similarity_function="pearson"):
         else:
             heapq.heappushpop(max_similarity, (similarity, compared_player_name))
             # print([heapq.heappop(max_similarity) for x in range(len(max_similarity))])
-    return [heapq.heappop(max_similarity) for x in range(len(max_similarity))]
+
+    results = df.loc[df["Player"].isin([x[1] for x in max_similarity])]
+
+    results['similarity'] = [x[0] for x in max_similarity]
+    row[['similarity']] = 1
+
+    return pd.concat([results, row])

@@ -10,11 +10,11 @@ def get_db():
     })
     return db
 
-def scrape_seasons(seasons):
-    for season in seasons:
-        season_stats_df = get_season_stats_as_df(season)
-        ref = db.reference("/player_season_stats/" + season + "/per_game")
-        for index, row in season_stats_df.iterrows():
-            ref.push(row.to_dict())
 get_db()
-scrape_seasons(['2023', '2022', '2021', '2020'])
+
+def delete_seasons(seasons):
+    for season in seasons:
+        ref = db.reference("/player_season_stats/" + season)
+        ref.delete()
+        print(f'Deleted season {season}')
+delete_seasons([ '2023', '2022', '2021', '2020'])

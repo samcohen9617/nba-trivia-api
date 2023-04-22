@@ -55,12 +55,24 @@ def filter_players_by_retirement_year(player_row, year):
 #     player_name = random_player.find('th', {'data-stat': 'player'}).text
 #     return player_name
 
+def remove_duplicates(df):
+    # df.loc[df['Tm'] == 'TOT', 'Tm'] = 'zz'
+    # df.sort_values(by=['Player', 'Tm'], ascending=[True, True])
+    df.drop_duplicates(subset=['Player'], keep='first', inplace=True)
+    return df
+
+def clean_df(df):
+    df = df[df['Age'] != 'Age']
+    df = df.drop(['Rk'], axis=1)
+    df = df.fillna(0)
+    df = remove_duplicates(df)
+    return df
+
+
 def get_season_stats_as_df(season):
     """Get season stats route"""
     url = f'https://www.basketball-reference.com/leagues/NBA_{season}_per_game.html'
     soup = make_soup(url)
     table = soup.find('table', id="per_game_stats")
     df = pd.read_html(str(table))[0]
-    # remove header rows in middle of table
-    df = df[df['Age'] != 'Age']
-    return df.fillna(0)
+    return clean_df(df)

@@ -2,6 +2,7 @@ from firebase_admin import credentials
 import firebase_admin
 from app.api.trivia.controllers import get_most_similar_question_controller
 
+
 def get_db():
     cred = credentials.Certificate("../secrets/nba-comparison-app-firebase-secret.json")
 
@@ -10,11 +11,12 @@ def get_db():
     })
     return db
 
+
 def test_get_most_similar_question_controller():
     """Test get most similar question controller"""
     player = {
-        'name': 'LeBron James',
-        'seasons': ['2023', '2022', '2021', '2020']
+        'name': 'Chris Paul',
+        'seasons': ['2021', '2020']
     }
     test_season = '2023'
 
